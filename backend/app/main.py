@@ -1,6 +1,9 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.config import PROJECT_NAME, ENV
 from app.routes.career import router as career_router
+from app.routes.students import router as students_router
+from app.routes.progress import router as progress_router
 
 app = FastAPI(
     title=PROJECT_NAME,
@@ -8,7 +11,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # Vite default ports
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(career_router)
+app.include_router(students_router)
+app.include_router(progress_router)
 
 @app.get("/")
 def root():

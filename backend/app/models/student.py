@@ -1,8 +1,18 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Literal
+from typing import List, Dict, Literal, Optional
 
 
 class StudentProfile(BaseModel):
+    name: str = Field(..., example="John Doe")
+    education: str = Field(..., example="bachelors")
+    skills: str = Field(..., example="Python, React, Data Analysis")
+    interests: str = Field(..., example="Software Development, Data Science")
+    goals: str = Field(..., example="Become a Senior Developer")
+    experience: Optional[str] = Field(None, example="2 years as Junior Developer")
+
+
+class CareerAnalysisProfile(BaseModel):
+    """Profile format used for career analysis"""
     interests: List[str] = Field(
         ..., example=["backend", "problem-solving"]
     )

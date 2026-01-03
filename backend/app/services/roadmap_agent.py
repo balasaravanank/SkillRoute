@@ -9,42 +9,38 @@ You are an AI Learning Roadmap Planner.
 
 Your task:
 - Create a realistic learning roadmap for a given career
-- Adapt it to the student's time_per_week and learning pace
+- Adapt it to the student's profile and goals
 - Keep the roadmap practical and beginner-friendly
-- Avoid overwhelming the student
+- Provide 4-6 phases of learning
 
-Rules:
-- Break roadmap into phases or months
-- Each phase must have:
-  - focus_skills
-  - learning_outcomes
-- Be concise
-- Return ONLY valid JSON
-
-JSON format:
+Return ONLY valid JSON in this exact format:
 {
-  "duration_months": <number>,
-  "roadmap": [
-    {
-      "phase": "Month 1",
-      "focus_skills": ["skill1", "skill2"],
-      "outcomes": ["outcome1", "outcome2"]
-    }
-  ]
+  "career_decision": {
+    "career": "<career title>",
+    "reasoning": "<short explanation>",
+    "confidence": <number 0-100>
+  },
+  "learning_roadmap": {
+    "duration_months": <number>,
+    "roadmap": [
+      {
+        "phase": "Phase 1: Foundations",
+        "duration": "4-6 weeks",
+        "focus_skills": ["skill1", "skill2"],
+        "outcomes": ["outcome1", "outcome2"]
+      }
+    ]
+  }
 }
 """
 
-def generate_roadmap(career: str, profile: dict) -> dict:
-    prompt_input = {
-        "career": career,
-        "student_profile": profile
-    }
-
+def generate_roadmap(profile: dict) -> dict:
+    """Generate both career decision and learning roadmap"""
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": json.dumps(prompt_input)}
+            {"role": "user", "content": json.dumps(profile)}
         ],
         temperature=0.3
     )
@@ -55,3 +51,59 @@ def generate_roadmap(career: str, profile: dict) -> dict:
         return json.loads(content)
     except json.JSONDecodeError:
         raise ValueError("Roadmap agent returned invalid JSON")
+
+
+ADAPT_SYSTEM_PROMPT = """
+You are an AI Learning Roadmap Adapter.
+
+Your task:
+- Analyze the student's current roadmap and their progress.
+- If they are progressing well, suggest advanced topics or speed up the timeline.
+- If they are stuck or slow, suggest remedial resources or break down steps further.
+- Keep the structure consistent with the original roadmap but modify future phases.
+
+Input JSON:
+{
+  "current_roadmap": { ... },
+  "progress": { "completed_phases": X, "total_phases": Y, "streak_days": Z }
+}
+
+Return ONLY valid JSON for the new "learning_roadmap" part:
+{
+  "duration_months": <number>,
+  "roadmap": [
+    {
+      "phase": "Phase X: ...",
+      "duration": "...",
+      "focus_skills": [...],
+      "outcomes": [...]
+    }
+  ]
+}
+"""
+
+def adapt_roadmap(current_data: dict) -> dict:
+    """Adapt the roadmap based on progress"""
+    
+    # Prepare input for AI
+    input_data = {
+        "current_roadmap": current_data.get("learning_roadmap"),
+        "progress": current_data.get("progress")
+    }
+    
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": ADAPT_SYSTEM_PROMPT},
+            {"role": "user", "content": json.dumps(input_data)}
+        ],
+        temperature=0.3
+    )
+
+    content = response.choices[0].message.content
+
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        # Fallback: return original if AI fails
+        return current_data.get("learning_roadmap")
