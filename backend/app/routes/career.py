@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from app.models.student import StudentProfile
 from app.services.career_agent import decide_career
 from app.services.roadmap_agent import generate_roadmap
 from app.services.storage_service import save_career_analysis
+from app.utils.auth import verify_firebase_token
 
 router = APIRouter(
     prefix="/career",
@@ -10,11 +11,11 @@ router = APIRouter(
 )
 
 @router.post("/analyze")
-def analyze_profile(profile: StudentProfile):
+def analyze_profile(
+    profile: StudentProfile,
+    user_id: str = Depends(verify_firebase_token)
+):
     try:
-        # TEMP user_id (Auth comes in Phase 6)
-        user_id = "test_user_001"
-
         career_decision = decide_career(profile.dict())
         roadmap = generate_roadmap(
             career_decision["career"],
@@ -30,9 +31,9 @@ def analyze_profile(profile: StudentProfile):
 
         return {
             "status": "success",
+            "user_id": user_id,
             "career_decision": career_decision,
-            "learning_roadmap": roadmap,
-            "saved": True
+            "learning_roadmap": roadmap
         }
 
     except Exception as e:
