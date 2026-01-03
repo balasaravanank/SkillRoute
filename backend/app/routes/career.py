@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from app.models.student import StudentProfile
 from app.services.career_agent import decide_career
 from app.services.roadmap_agent import generate_roadmap
+from app.services.storage_service import save_career_analysis
 
 router = APIRouter(
     prefix="/career",
@@ -11,18 +12,27 @@ router = APIRouter(
 @router.post("/analyze")
 def analyze_profile(profile: StudentProfile):
     try:
-        # Phase 3: Career decision
+        # TEMP user_id (Auth comes in Phase 6)
+        user_id = "test_user_001"
+
         career_decision = decide_career(profile.dict())
+        roadmap = generate_roadmap(
+            career_decision["career"],
+            profile.dict()
+        )
 
-        career_name = career_decision["career"]
-
-        # Phase 4: Roadmap generation
-        roadmap = generate_roadmap(career_name, profile.dict())
+        save_career_analysis(
+            user_id=user_id,
+            profile=profile.dict(),
+            career_decision=career_decision,
+            roadmap=roadmap
+        )
 
         return {
             "status": "success",
             "career_decision": career_decision,
-            "learning_roadmap": roadmap
+            "learning_roadmap": roadmap,
+            "saved": True
         }
 
     except Exception as e:

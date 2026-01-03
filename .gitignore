@@ -42,6 +42,7 @@ logs/
 # Firebase
 firebase-credentials.json
 serviceAccountKey.json
+firebase_key.json
 
 # Node modules (for frontend)
 node_modules/
