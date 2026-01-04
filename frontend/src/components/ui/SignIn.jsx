@@ -8,6 +8,7 @@ import { Input } from './input';
 import { Button } from './button';
 import { Label } from './label';
 import { useTheme } from '../../contexts/ThemeContext';
+import axios from 'axios';
 
 // --- HELPER COMPONENTS (ICONS) ---
 
@@ -31,14 +32,51 @@ export const SignIn = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
+  // Helper function to check if user has completed profile setup
+  const checkProfileCompletion = async (user) => {
+    try {
+      const idToken = await user.getIdToken();
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+      const response = await axios.get(
+        `${API_URL}/api/students/profile`,
+        {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      // If profile exists and has required fields, user has completed setup
+      if (response.data && response.data.name && response.data.education) {
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking profile:', error);
+      // If there's an error (like 404 or no profile), assume profile not completed
+      return false;
+    }
+  };
+
   const handleSignIn = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate('/profile-setup');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Check if user has completed profile setup
+      const hasProfile = await checkProfileCompletion(user);
+
+      if (hasProfile) {
+        navigate('/dashboard');
+      } else {
+        navigate('/profile-setup');
+      }
     } catch (err) {
       setError(err.message || 'Failed to sign in. Please check your credentials.');
     } finally {
@@ -49,11 +87,20 @@ export const SignIn = () => {
   const handleGoogleSignIn = async () => {
     setError('');
     setLoading(true);
-    
+
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      navigate('/profile-setup');
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
+
+      // Check if user has completed profile setup
+      const hasProfile = await checkProfileCompletion(user);
+
+      if (hasProfile) {
+        navigate('/dashboard');
+      } else {
+        navigate('/profile-setup');
+      }
     } catch (err) {
       setError(err.message || 'Failed to sign in with Google.');
     } finally {
@@ -109,10 +156,10 @@ export const SignIn = () => {
           <form className="space-y-4" onSubmit={handleSignIn}>
             <div className="space-y-2">
               <Label htmlFor="email" className="dark:text-gray-200">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="name@example.com" 
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -122,26 +169,26 @@ export const SignIn = () => {
             <div className="space-y-2">
               <Label htmlFor="password" className="dark:text-gray-200">Password</Label>
               <div className="relative">
-                <Input 
-                  id="password" 
-                  type={showPassword ? 'text' : 'password'} 
-                  placeholder="Enter your password" 
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 dark:text-white dark:placeholder-gray-400 focus:border-black dark:focus:border-indigo-500 focus:ring-black dark:focus:ring-indigo-500 pr-10"
                 />
-                <button 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)} 
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-black dark:text-gray-400 dark:hover:text-white"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-black hover:bg-gray-800 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white shadow-md"
               disabled={loading}
             >
@@ -158,12 +205,12 @@ export const SignIn = () => {
             </div>
           </div>
 
-          <Button 
-            variant="outline" 
-            type="button" 
+          <Button
+            variant="outline"
+            type="button"
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-800 hover:text-black dark:hover:text-white"
+            className="w-full bg-white dark:bg-transparent border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-800 hover:text-black dark:hover:text-white"
           >
             <GoogleIcon />
             <span className="ml-2">Google</span>
@@ -179,47 +226,47 @@ export const SignIn = () => {
       </Card>
 
       {/* Developed By Section */}
-      <div className="mt-8 text-center animate-fade-in w-full -mx-4 px-4 md:mx-auto md:max-w-md">
-        <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs font-bold mb-4 uppercase tracking-wider">Developed by</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="mt-8 text-center animate-fade-in w-full -mx-4 px-4 md:mx-auto md:max-w-md lg:max-w-[34rem]">
+        <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs lg:text-sm font-bold mb-4 lg:mb-6 uppercase tracking-wider">Developed by</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
           {/* Haridharshini J */}
-          <a href="#" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 pr-4 bg-white dark:bg-zinc-900 rounded-full border-2 border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all group hover:scale-105">
-            <div className="w-8 h-8 rounded-full bg-black dark:bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">HJ</div>
+          <a href="#" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 lg:gap-4 p-2 lg:p-3 pr-4 lg:pr-5 bg-white dark:bg-zinc-900 rounded-full border-2 border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all group hover:scale-105">
+            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-black dark:bg-indigo-600 flex items-center justify-center text-white font-bold text-xs lg:text-sm">HJ</div>
             <div className="text-left flex-1">
-              <p className="text-xs font-bold text-gray-900 dark:text-white">Haridharshini J</p>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Full Stack Developer</p>
+              <p className="text-xs lg:text-sm font-bold text-gray-900 dark:text-white">Haridharshini J</p>
+              <p className="text-[10px] lg:text-xs text-gray-500 dark:text-gray-400 font-medium">Full Stack Developer</p>
             </div>
-            <Linkedin className="w-4 h-4 text-gray-400 group-hover:text-[#0077b5] transition-colors" />
+            <Linkedin className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400 group-hover:text-[#0077b5] transition-colors" />
           </a>
-          
+
           {/* Dheebash Sai R */}
-          <a href="https://www.linkedin.com/in/dheebash-sai-ramesh-563b96320/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 pr-4 bg-white dark:bg-zinc-900 rounded-full border-2 border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all group hover:scale-105">
-            <div className="w-8 h-8 rounded-full bg-black dark:bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">DS</div>
+          <a href="https://www.linkedin.com/in/dheebash-sai-ramesh-563b96320/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 lg:gap-4 p-2 lg:p-3 pr-4 lg:pr-5 bg-white dark:bg-zinc-900 rounded-full border-2 border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all group hover:scale-105">
+            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-black dark:bg-indigo-600 flex items-center justify-center text-white font-bold text-xs lg:text-sm">DS</div>
             <div className="text-left flex-1">
-              <p className="text-xs font-bold text-gray-900 dark:text-white">Dheebash Sai R</p>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Full Stack Developer</p>
+              <p className="text-xs lg:text-sm font-bold text-gray-900 dark:text-white">Dheebash Sai R</p>
+              <p className="text-[10px] lg:text-xs text-gray-500 dark:text-gray-400 font-medium">Full Stack Developer</p>
             </div>
-            <Linkedin className="w-4 h-4 text-gray-400 group-hover:text-[#0077b5] transition-colors" />
+            <Linkedin className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400 group-hover:text-[#0077b5] transition-colors" />
           </a>
 
           {/* Bala Saravanan K */}
-          <a href="https://www.linkedin.com/in/bala-saravanan-k/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 pr-4 bg-white dark:bg-zinc-900 rounded-full border-2 border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all group hover:scale-105">
-            <div className="w-8 h-8 rounded-full bg-black dark:bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">BS</div>
+          <a href="https://www.linkedin.com/in/bala-saravanan-k/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 lg:gap-4 p-2 lg:p-3 pr-4 lg:pr-5 bg-white dark:bg-zinc-900 rounded-full border-2 border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all group hover:scale-105">
+            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-black dark:bg-indigo-600 flex items-center justify-center text-white font-bold text-xs lg:text-sm">BS</div>
             <div className="text-left flex-1">
-              <p className="text-xs font-bold text-gray-900 dark:text-white">Bala Saravanan K</p>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Web Designer</p>
+              <p className="text-xs lg:text-sm font-bold text-gray-900 dark:text-white">Bala Saravanan K</p>
+              <p className="text-[10px] lg:text-xs text-gray-500 dark:text-gray-400 font-medium">Web Designer</p>
             </div>
-            <Linkedin className="w-4 h-4 text-gray-400 group-hover:text-[#0077b5] transition-colors" />
+            <Linkedin className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400 group-hover:text-[#0077b5] transition-colors" />
           </a>
 
           {/* Thanushree Vijayakanth */}
-          <a href="#" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 pr-4 bg-white dark:bg-zinc-900 rounded-full border-2 border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all group hover:scale-105">
-            <div className="w-8 h-8 rounded-full bg-black dark:bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">TV</div>
+          <a href="#" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 lg:gap-4 p-2 lg:p-3 pr-4 lg:pr-5 bg-white dark:bg-zinc-900 rounded-full border-2 border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all group hover:scale-105">
+            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-black dark:bg-indigo-600 flex items-center justify-center text-white font-bold text-xs lg:text-sm">TV</div>
             <div className="text-left flex-1">
-              <p className="text-xs font-bold text-gray-900 dark:text-white">Thanushree Vijayakanth</p>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Backend Developer</p>
+              <p className="text-xs lg:text-sm font-bold text-gray-900 dark:text-white">Thanushree V</p>
+              <p className="text-[10px] lg:text-xs text-gray-500 dark:text-gray-400 font-medium">Backend Developer</p>
             </div>
-            <Linkedin className="w-4 h-4 text-gray-400 group-hover:text-[#0077b5] transition-colors" />
+            <Linkedin className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400 group-hover:text-[#0077b5] transition-colors" />
           </a>
         </div>
       </div>

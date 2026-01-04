@@ -26,24 +26,69 @@ def save_career_analysis(
     return True
 
 
-def save_active_roadmap(user_id: str, career_decision: dict, roadmap: dict):
-    """Save the current active roadmap with progress tracking"""
+def save_active_roadmap(user_id: str, career_decision: dict, roadmap: dict, preserve_progress: bool = False):
+    """
+    Save the current active roadmap with progress tracking
+    
+    Args:
+        user_id: User's Firebase ID
+        career_decision: Career decision data
+        roadmap: Learning roadmap data
+        preserve_progress: If True, preserve existing progress and map completed phases to new roadmap
+    """
+    existing_data = None
+    if preserve_progress:
+        existing_data = get_active_roadmap(user_id)
     
     # Initialize status for each phase
     if "roadmap" in roadmap:
-        for phase in roadmap["roadmap"]:
-            phase["status"] = "pending"
-            phase["completed_at"] = None
-
-    data = {
-        "career_decision": career_decision,
-        "learning_roadmap": roadmap,
-        "progress": {
+        for idx, phase in enumerate(roadmap["roadmap"]):
+            # Check if this phase was completed in the old roadmap
+            if existing_data and preserve_progress:
+                old_roadmap = existing_data.get("learning_roadmap", {}).get("roadmap", [])
+                # Map by index (same phase position)
+                is_completed = False
+                if idx < len(old_roadmap):
+                    old_phase = old_roadmap[idx]
+                    if old_phase.get("status") == "completed":
+                        is_completed = True
+                        phase["status"] = "completed"
+                        phase["completed_at"] = old_phase.get("completed_at")
+                    else:
+                        phase["status"] = "pending"
+                        phase["completed_at"] = None
+                else:
+                    # New phase added in adapted roadmap
+                    phase["status"] = "pending"
+                    phase["completed_at"] = None
+            else:
+                # New roadmap - all phases start as pending
+                phase["status"] = "pending"
+                phase["completed_at"] = None
+    
+    # Calculate initial or preserved progress
+    if existing_data and preserve_progress:
+        # Recalculate based on what's still completed in new roadmap
+        completed_count = sum(1 for p in roadmap.get("roadmap", []) if p.get("status") == "completed")
+        progress_data = {
+            "completed_phases": completed_count,
+            "total_phases": len(roadmap.get("roadmap", [])),
+            "streak_days": existing_data.get("progress", {}).get("streak_days", 0),
+            "last_activity_date": existing_data.get("progress", {}).get("last_activity_date")
+        }
+    else:
+        # New roadmap - start fresh
+        progress_data = {
             "completed_phases": 0,
             "total_phases": len(roadmap.get("roadmap", [])),
             "streak_days": 0,
             "last_activity_date": None
-        },
+        }
+
+    data = {
+        "career_decision": career_decision,
+        "learning_roadmap": roadmap,
+        "progress": progress_data,
         "updated_at": datetime.utcnow()
     }
 
@@ -137,3 +182,22 @@ def save_student_profile(user_id: str, profile: dict):
         import traceback
         traceback.print_exc()
         raise Exception(f"Database error: {str(e)}")
+
+
+def delete_active_roadmap(user_id: str):
+    """Delete the active roadmap for a user"""
+    try:
+        ref = db.collection("users").document(user_id).collection("active_roadmap").document("current")
+        doc = ref.get()
+        
+        if doc.exists:
+            ref.delete()
+            print(f"Deleted roadmap for user: {user_id}")
+            return True
+        else:
+            print(f"No roadmap found for user: {user_id}")
+            return False
+    except Exception as e:
+        print(f"Error deleting roadmap for user {user_id}: {str(e)}")
+        raise Exception(f"Failed to delete roadmap: {str(e)}")
+

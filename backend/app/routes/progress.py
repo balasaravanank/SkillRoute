@@ -38,11 +38,19 @@ def adapt_roadmap_route(
     # We pass the current roadmap and progress to the AI agent
     new_roadmap = adapt_roadmap(current_data)
     
-    # Save the new adapted roadmap
+    # Save the new adapted roadmap WITH PROGRESS PRESERVATION
     save_active_roadmap(
         user_id, 
         current_data["career_decision"], 
-        new_roadmap
+        new_roadmap,
+        preserve_progress=True  # Preserve existing progress
     )
     
-    return {"status": "success", "roadmap": new_roadmap}
+    # Return updated data with recalculated progress
+    updated_data = get_active_roadmap(user_id)
+    return {
+        "status": "success",
+        "career_decision": updated_data.get("career_decision"),
+        "learning_roadmap": updated_data.get("learning_roadmap"),
+        "progress": updated_data.get("progress")
+    }
