@@ -17,12 +17,15 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:5173",
-        "https://*.vercel.app",  # Allow all Vercel preview deployments
-        "https://your-domain.com"  # Replace with your actual domain when deployed
+        "https://*.vercel.app",
+        "https://vercel.app",
+        "*"  # Allow all origins in production (consider restricting this)
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    allow_origin_regex=r"https://.*\.vercel\.app"
 )
 
 app.include_router(career_router)
