@@ -252,15 +252,15 @@ export const SignIn = () => {
                 <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium truncate">Backend Dev</p>
               </div>
               <Linkedin className="w-4 h-4 text-gray-400 group-hover:text-[#0077b5] transition-colors" />
+            </a>
 
-               <a href="https://www.linkedin.com/in/sreesanth-sree/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 pr-3 bg-gray-50 dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all group">
+            <a href="https://www.linkedin.com/in/sreesanth-sree/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 pr-3 bg-gray-50 dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all group">
               <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">SR</div>
               <div className="text-left flex-1 min-w-0">
                 <p className="text-xs font-bold text-gray-900 dark:text-gray-200 truncate">Sreesanth R</p>
-                <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium truncate">Backend Dev & DevOps</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium truncate">Full Stack Dev</p>
               </div>
               <Linkedin className="w-4 h-4 text-gray-400 group-hover:text-[#0077b5] transition-colors" />
-            </a>
             </a>
           </div>
         </div>
