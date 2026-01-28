@@ -1,11 +1,9 @@
 import os
 import json
-from openai import AsyncOpenAI
+from groq import Groq
 
-client = AsyncOpenAI(
-    api_key=os.getenv("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1",
-    timeout=30.0  # 30 second timeout
+client = Groq(
+    api_key=os.getenv("GROQ_API_KEY")
 )
 
 SYSTEM_PROMPT = """
@@ -72,14 +70,16 @@ async def generate_roadmap(profile: dict) -> dict:
     
     while retry_count < max_retries:
         try:
-            response = await client.chat.completions.create(
+            response = client.chat.completions.create(
                 model="meta-llama/llama-prompt-guard-2-86m",
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": json.dumps(profile)}
                 ],
-                temperature=0.3,
-                timeout=25.0
+                temperature=1,
+                max_completion_tokens=1024,
+                top_p=1,
+                stream=False
             )
 
             content = response.choices[0].message.content
@@ -138,14 +138,16 @@ async def adapt_roadmap(current_data: dict) -> dict:
     
     while retry_count < max_retries:
         try:
-            response = await client.chat.completions.create(
+            response = client.chat.completions.create(
                 model="meta-llama/llama-prompt-guard-2-86m",
                 messages=[
                     {"role": "system", "content": ADAPT_SYSTEM_PROMPT},
                     {"role": "user", "content": json.dumps(input_data)}
                 ],
-                temperature=0.3,
-                timeout=25.0
+                temperature=1,
+                max_completion_tokens=1024,
+                top_p=1,
+                stream=False
             )
 
             content = response.choices[0].message.content

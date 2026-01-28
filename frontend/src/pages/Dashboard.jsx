@@ -68,8 +68,9 @@ const Dashboard = () => {
         clearTimeout(timeoutId)
       }
     } catch (error) {
-      if (error.code !== 'ECONNABORTED') {
-        console.error('Profile load error:', error)
+      if (error.code !== 'ECONNABORTED' && error.name !== 'AbortError') {
+        const errorMsg = error.response?.data?.detail || error.message || 'Unknown error'
+        console.error('Profile load error:', errorMsg, error)
       }
     }
   }
@@ -92,8 +93,9 @@ const Dashboard = () => {
         clearTimeout(timeoutId)
       }
     } catch (error) {
-      if (error.code !== 'ECONNABORTED') {
-        console.error('Roadmap load error:', error)
+      if (error.code !== 'ECONNABORTED' && error.name !== 'AbortError') {
+        const errorMsg = error.response?.data?.detail || error.message || 'Unknown error'
+        console.error('Roadmap load error:', errorMsg, error)
       }
     }
   }
@@ -113,7 +115,9 @@ const Dashboard = () => {
       setRoadmap(response.data)
       toast.success('Roadmap generated successfully!')
     } catch (error) {
-      toast.error('Failed to generate roadmap')
+      const errorMsg = error.response?.data?.detail || error.message || 'An error occurred'
+      console.error('Failed to generate roadmap:', errorMsg, error)
+      toast.error(`Failed to generate roadmap: ${errorMsg}`)
     } finally {
       setLoading(false)
     }

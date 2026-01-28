@@ -172,8 +172,9 @@ const Profile = () => {
         clearTimeout(timeoutId);
       }
     } catch (error) {
-      if (error.code !== 'ECONNABORTED') {
-        console.error('Profile load error:', error);
+      if (error.code !== 'ECONNABORTED' && error.name !== 'AbortError') {
+        const errorMsg = error.response?.data?.detail || error.message || 'Unknown error'
+        console.error('Profile load error:', errorMsg, error)
       }
     } finally {
       setLoading(false);
