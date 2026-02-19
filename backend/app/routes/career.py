@@ -31,32 +31,40 @@ def assess_clarity(assessment: ClarityAssessment):
 
 @router.get("/roadmap")
 def get_current_roadmap(user_id: str = Depends(verify_firebase_token)):
-    roadmap = get_active_roadmap(user_id)
-    if not roadmap:
-        return {"message": "No active roadmap found"}
+    try:
+        roadmap = get_active_roadmap(user_id)
+        if not roadmap:
+            return {"message": "No active roadmap found"}
 
-    # Auto-adapt detection: check if progress is stalled
-    needs_adaptation = False
-    adaptation_reason = None
+        # Auto-adapt detection: check if progress is stalled
+        needs_adaptation = False
+        adaptation_reason = None
 
-    progress = roadmap.get("progress", {})
-    last_active = progress.get("last_activity_date")
+        progress = roadmap.get("progress", {})
+        if not isinstance(progress, dict):
+             progress = {}
+             
+        last_active = progress.get("last_activity_date")
 
-    if last_active:
-        try:
-            last_date = datetime.fromisoformat(last_active).date()
-            days_inactive = (datetime.utcnow().date() - last_date).days
+        if last_active:
+            try:
+                last_date = datetime.fromisoformat(last_active).date()
+                days_inactive = (datetime.utcnow().date() - last_date).days
 
-            if days_inactive >= 3 and progress.get("completed_phases", 0) < progress.get("total_phases", 0):
-                needs_adaptation = True
-                adaptation_reason = f"No activity for {days_inactive} days. The agent can adapt your roadmap to get you back on track."
-        except (ValueError, TypeError):
-            pass
+                if days_inactive >= 3 and progress.get("completed_phases", 0) < progress.get("total_phases", 0):
+                    needs_adaptation = True
+                    adaptation_reason = f"No activity for {days_inactive} days. The agent can adapt your roadmap to get you back on track."
+            except (ValueError, TypeError):
+                pass
 
-    roadmap["needs_adaptation"] = needs_adaptation
-    roadmap["adaptation_reason"] = adaptation_reason
+        roadmap["needs_adaptation"] = needs_adaptation
+        roadmap["adaptation_reason"] = adaptation_reason
 
-    return roadmap
+        return roadmap
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error getting roadmap: {str(e)}")
 
 
 @router.post("/roadmap")
@@ -88,6 +96,11 @@ async def generate_career_roadmap(
         }
 
     except Exception as e:
+        import traceback
+        import os
+        print(f"Error generating roadmap: {str(e)}")
+        print(f"GROQ_API_KEY set: {bool(os.getenv('GROQ_API_KEY'))}")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 

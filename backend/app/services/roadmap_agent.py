@@ -42,7 +42,7 @@ Follow this exact reasoning pipeline:
 - learning_pace ("slow"/"medium"/"fast", may be null)
 - clarity_score (0-100, may be null — treat null as 50)
 
-Return ONLY valid JSON in this exact format:
+Return ONLY valid JSON in this exact format (NO MARKDOWN, NO CODE BLOCKS):
 {
   "career_decision": {
     "career": "<career title>",
@@ -108,7 +108,7 @@ async def generate_roadmap(profile: dict) -> dict:
     while retry_count < max_retries:
         try:
             response = client.chat.completions.create(
-                model="groq/compound",
+                model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": json.dumps(profile)}
@@ -116,22 +116,34 @@ async def generate_roadmap(profile: dict) -> dict:
                 temperature=1,
                 max_completion_tokens=8000,
                 top_p=1,
-                stream=False,
-                compound_custom={"tools": {"enabled_tools": ["web_search", "code_interpreter", "visit_website"]}}
+                stream=False
             )
 
             content = response.choices[0].message.content
+            print(f"DEBUG: Raw content type: {type(content)}")
+            print(f"DEBUG: Raw content: {content[:500]}...") # Print first 500 chars
+
+            # Remove markdown code blocks if present
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.startswith("```"):
+                content = content[3:]
+            if content.endswith("```"):
+                content = content[:-3]
+            
+            content = content.strip()
 
             try:
                 return json.loads(content)
-            except json.JSONDecodeError:
-                raise ValueError("Roadmap agent returned invalid JSON")
+            except json.JSONDecodeError as e:
+                print(f"JSON Decode Error: {e}")
+                print(f"Failed Content: {content}")
+                raise ValueError(f"Roadmap agent returned invalid JSON: {e}")
         except Exception as e:
+            print(f"Error in roadmap generation: {e}")
             retry_count += 1
             if retry_count >= max_retries:
                 raise
-            import asyncio
-            await asyncio.sleep(1)
 
 
 ADAPT_SYSTEM_PROMPT = """
@@ -209,7 +221,7 @@ async def adapt_roadmap(current_data: dict) -> dict:
     while retry_count < max_retries:
         try:
             response = client.chat.completions.create(
-                model="groq/compound",
+                model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": ADAPT_SYSTEM_PROMPT},
                     {"role": "user", "content": json.dumps(input_data)}
@@ -217,17 +229,28 @@ async def adapt_roadmap(current_data: dict) -> dict:
                 temperature=1,
                 max_completion_tokens=8000,
                 top_p=1,
-                stream=False,
-                compound_custom={"tools": {"enabled_tools": ["web_search", "code_interpreter", "visit_website"]}}
+                stream=False
             )
 
             content = response.choices[0].message.content
+            
+            # Remove markdown code blocks if present
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.startswith("```"):
+                content = content[3:]
+            if content.endswith("```"):
+                content = content[:-3]
+            
+            content = content.strip()
 
             try:
                 return json.loads(content)
             except json.JSONDecodeError:
+                print(f"JSON Decode Error in adapt_roadmap. Content: {content[:100]}...")
                 return current_data.get("learning_roadmap")
         except Exception as e:
+            print(f"Error in adapt_roadmap: {e}")
             retry_count += 1
             if retry_count >= max_retries:
                 return current_data.get("learning_roadmap")
