@@ -2,9 +2,11 @@ import os
 import json
 from groq import Groq
 
-client = Groq(
-    api_key=os.getenv("GROQ_API_KEY")
-)
+def _get_client():
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY environment variable is not set")
+    return Groq(api_key=api_key)
 
 SYSTEM_PROMPT = """
 You are SkillRoute AgentX — an autonomous AI Decision-Making Agent for career path selection.
@@ -123,7 +125,7 @@ async def generate_roadmap(profile: dict) -> dict:
 
     while retry_count < max_retries:
         try:
-            response = client.chat.completions.create(
+            response = _get_client().chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
@@ -236,7 +238,7 @@ async def adapt_roadmap(current_data: dict) -> dict:
 
     while retry_count < max_retries:
         try:
-            response = client.chat.completions.create(
+            response = _get_client().chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": ADAPT_SYSTEM_PROMPT},
