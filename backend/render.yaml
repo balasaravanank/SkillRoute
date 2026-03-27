@@ -12,7 +12,7 @@ services:
         value: SkillRoute
       - key: ENV
         value: production
-      - key: OPENAI_API_KEY
+      - key: GROQ_API_KEY
         sync: false
       - key: FIREBASE_PROJECT_ID
         sync: false
