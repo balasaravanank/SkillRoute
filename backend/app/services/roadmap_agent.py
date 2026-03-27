@@ -1,12 +1,14 @@
 import os
 import json
-from groq import Groq
+import asyncio
+from groq import AsyncGroq
 
 def _get_client():
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise ValueError("GROQ_API_KEY environment variable is not set")
-    return Groq(api_key=api_key)
+    # Using AsyncGroq and explicitly setting a longer timeout for the 70b model
+    return AsyncGroq(api_key=api_key, timeout=60.0)
 
 SYSTEM_PROMPT = """
 You are SkillRoute AgentX — an autonomous AI Decision-Making Agent for career path selection.
@@ -120,12 +122,14 @@ Return ONLY valid JSON in this exact format (NO MARKDOWN, NO CODE BLOCKS):
 """
 
 async def generate_roadmap(profile: dict) -> dict:
-    max_retries = 2
+    max_retries = 3
     retry_count = 0
+    last_error = None
 
     while retry_count < max_retries:
         try:
-            response = _get_client().chat.completions.create(
+            client = _get_client()
+            response = await client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
@@ -157,11 +161,16 @@ async def generate_roadmap(profile: dict) -> dict:
                 print(f"JSON Decode Error: {e}")
                 print(f"Failed Content: {content}")
                 raise ValueError(f"Roadmap agent returned invalid JSON: {e}")
+
         except Exception as e:
-            print(f"Error in roadmap generation: {e}")
+            last_error = e
+            error_type = type(e).__name__
+            print(f"Attempt {retry_count + 1} failed in roadmap generation: {error_type} - {str(e)}")
             retry_count += 1
             if retry_count >= max_retries:
-                raise
+                # Provide a more descriptive error message wrapping the underlying issue
+                raise RuntimeError(f"Failed to communicate with AI provider after {max_retries} attempts. Last error: {error_type} - {str(e)}")
+            await asyncio.sleep(2 ** retry_count) # Exponential backoff
 
 
 ADAPT_SYSTEM_PROMPT = """
@@ -233,12 +242,13 @@ async def adapt_roadmap(current_data: dict) -> dict:
         }
     }
 
-    max_retries = 2
+    max_retries = 3
     retry_count = 0
 
     while retry_count < max_retries:
         try:
-            response = _get_client().chat.completions.create(
+            client = _get_client()
+            response = await client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": ADAPT_SYSTEM_PROMPT},
@@ -267,10 +277,13 @@ async def adapt_roadmap(current_data: dict) -> dict:
             except json.JSONDecodeError:
                 print(f"JSON Decode Error in adapt_roadmap. Content: {content[:100]}...")
                 return current_data.get("learning_roadmap")
+                
         except Exception as e:
-            print(f"Error in adapt_roadmap: {e}")
+            error_type = type(e).__name__
+            print(f"Attempt {retry_count + 1} failed in adapt_roadmap: {error_type} - {str(e)}")
             retry_count += 1
             if retry_count >= max_retries:
                 return current_data.get("learning_roadmap")
-            import asyncio
-            await asyncio.sleep(1)
+            await asyncio.sleep(2 ** retry_count) # Exponential backoff
+            
+    return current_data.get("learning_roadmap")
