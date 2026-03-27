@@ -35,7 +35,9 @@ import {
   Code2,
   Compass,
   Clock,
-  Zap
+  Zap,
+  Gauge,
+  Rocket
 } from 'lucide-react';
 
 const EDUCATION_LEVELS = [
@@ -588,7 +590,9 @@ const Profile = () => {
                   <Label className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-200">Learning Pace</Label>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  {[{ value: 'slow', label: 'Slow & Steady', icon: '🐢' }, { value: 'medium', label: 'Balanced', icon: '⚡' }, { value: 'fast', label: 'Fast Track', icon: '🚀' }].map(pace => (
+                  {[{ value: 'slow', label: 'Slow & Steady', icon: Gauge }, { value: 'medium', label: 'Balanced', icon: Zap }, { value: 'fast', label: 'Fast Track', icon: Rocket }].map(pace => {
+                    const PaceIcon = pace.icon;
+                    return (
                     <button
                       key={pace.value}
                       type="button"
@@ -598,10 +602,11 @@ const Profile = () => {
                           : 'border-gray-200 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-500 bg-white dark:bg-zinc-800/20'
                         }`}
                     >
-                      <div className="text-xl mb-1">{pace.icon}</div>
+                      <PaceIcon className={`w-6 h-6 mx-auto mb-1 ${formData.learning_pace === pace.value ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray-400'}`} />
                       <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">{pace.label}</p>
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </motion.div>

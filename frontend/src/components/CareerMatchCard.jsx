@@ -19,7 +19,8 @@ const CareerMatchCard = ({ careerDecision, onViewInsights }) => {
     } = careerDecision;
 
     const getDemandBadge = (demand) => {
-        switch (demand) {
+        const level = typeof demand === 'string' ? demand : (demand?.demand_level || 'stable');
+        switch (level) {
             case 'trending':
                 return { bg: 'bg-emerald-500', label: 'High Demand' };
             case 'stable':
@@ -56,6 +57,14 @@ const CareerMatchCard = ({ careerDecision, onViewInsights }) => {
                                             {demandBadge.label}
                                         </span>
                                     </span>
+                                    {typeof industry_demand === 'object' && industry_demand.live_job_count !== undefined && industry_demand.live_job_count > 0 && (
+                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-md">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                            <span className="text-[10px] sm:text-[11px] font-bold tracking-wider">
+                                                {industry_demand.live_job_count}+ LIVE JOBS
+                                            </span>
+                                        </span>
+                                    )}
                                 </motion.div>
 
                                 <motion.h2

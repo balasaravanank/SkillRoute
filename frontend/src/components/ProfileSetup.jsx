@@ -36,7 +36,9 @@ import {
   Clock,
   Zap,
   Target,
-  HelpCircle
+  HelpCircle,
+  Gauge,
+  Rocket
 } from 'lucide-react';
 
 // Predefined options
@@ -149,9 +151,9 @@ const CLARITY_QUESTIONS = [
 ];
 
 const PACE_OPTIONS = [
-  { value: 'slow', label: 'Slow & Steady', desc: 'Take my time, deep understanding', icon: '🐢' },
-  { value: 'medium', label: 'Balanced', desc: 'Moderate pace, mix of depth & speed', icon: '⚡' },
-  { value: 'fast', label: 'Fast Track', desc: 'Intensive learning, quick progress', icon: '🚀' },
+  { value: 'slow', label: 'Slow & Steady', desc: 'Take my time, deep understanding', icon: Gauge },
+  { value: 'medium', label: 'Balanced', desc: 'Moderate pace, mix of depth & speed', icon: Zap },
+  { value: 'fast', label: 'Fast Track', desc: 'Intensive learning, quick progress', icon: Rocket },
 ];
 
 const ProfileSetup = () => {
@@ -698,7 +700,9 @@ const ProfileSetup = () => {
                         <Label className="text-sm sm:text-base font-bold text-gray-900">Learning Pace</Label>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
-                        {PACE_OPTIONS.map(pace => (
+                        {PACE_OPTIONS.map(pace => {
+                          const PaceIcon = pace.icon;
+                          return (
                           <button
                             key={pace.value}
                             type="button"
@@ -708,11 +712,12 @@ const ProfileSetup = () => {
                                 : 'border-gray-200 hover:border-gray-400 bg-white'
                               }`}
                           >
-                            <div className="text-xl mb-1">{pace.icon}</div>
+                            <PaceIcon className={`w-6 h-6 mx-auto mb-1 ${formData.learning_pace === pace.value ? 'text-black' : 'text-gray-500'}`} />
                             <p className="text-xs sm:text-sm font-bold text-gray-900">{pace.label}</p>
                             <p className="text-[10px] text-gray-500 mt-0.5 hidden sm:block">{pace.desc}</p>
                           </button>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   </div>

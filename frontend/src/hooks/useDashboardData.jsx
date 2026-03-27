@@ -9,6 +9,8 @@ export const useDashboardData = () => {
     const [roadmap, setRoadmap] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [isGenerating, setIsGenerating] = useState(false)
+    const [generationMode, setGenerationMode] = useState(null)
 
     const autoAdaptShown = useRef(false)
     const toast = useToast()
@@ -81,6 +83,8 @@ export const useDashboardData = () => {
         if (!profile) return false
 
         setLoading(true)
+        setIsGenerating(true)
+        setGenerationMode('generate')
         try {
             const token = await auth.currentUser.getIdToken()
             const response = await axios.post(`${API_URL}/api/career/roadmap`, profile, {
@@ -95,11 +99,15 @@ export const useDashboardData = () => {
             return false
         } finally {
             setLoading(false)
+            setIsGenerating(false)
+            setGenerationMode(null)
         }
     }
 
     const adaptRoadmap = async () => {
         setLoading(true)
+        setIsGenerating(true)
+        setGenerationMode('adapt')
         try {
             const token = await auth.currentUser.getIdToken()
             await axios.post(`${API_URL}/api/progress/adapt`, {}, {
@@ -116,6 +124,8 @@ export const useDashboardData = () => {
             return false
         } finally {
             setLoading(false)
+            setIsGenerating(false)
+            setGenerationMode(null)
         }
     }
 
@@ -162,6 +172,8 @@ export const useDashboardData = () => {
         roadmap,
         loading,
         error,
+        isGenerating,
+        generationMode,
         generateRoadmap,
         adaptRoadmap,
         resetCareerPath,

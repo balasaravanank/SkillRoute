@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Lightbulb, Target, TrendingUp, CheckCircle2, XCircle } from 'lucide-react';
+import { X, Lightbulb, Target, TrendingUp, CheckCircle2, XCircle, Briefcase, MapPin, Tag } from 'lucide-react';
 import AgentDecisionTrace from './AgentDecisionTrace';
 
 const DecisionInsightsModal = ({ isOpen, onClose, careerDecision }) => {
@@ -137,13 +137,65 @@ const DecisionInsightsModal = ({ isOpen, onClose, careerDecision }) => {
                                 </div>
                                 <div className="p-4 bg-white dark:bg-zinc-800 rounded-xl border border-gray-200 dark:border-zinc-700 text-center">
                                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Industry Demand</p>
-                                    <p className="text-2xl font-bold capitalize text-gray-900 dark:text-white">{industry_demand || 'Stable'}</p>
+                                    <p className="text-2xl font-bold capitalize text-gray-900 dark:text-white">
+                                        {typeof industry_demand === 'object' ? industry_demand.demand_level : (industry_demand || 'Stable')}
+                                    </p>
                                 </div>
                                 <div className="p-4 bg-white dark:bg-zinc-800 rounded-xl border border-gray-200 dark:border-zinc-700 text-center col-span-2 md:col-span-1">
                                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Time to Job Ready</p>
                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">{time_to_job_ready || 'TBD'}</p>
                                 </div>
                             </div>
+
+                            {/* Real-Time Market Data */}
+                            {typeof industry_demand === 'object' && (
+                                <div className="p-6 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-zinc-700">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                        <h3 className="font-bold text-gray-900 dark:text-white">Real-Time Market Analysis</h3>
+                                    </div>
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                                <Briefcase className="w-4 h-4 text-blue-500" />
+                                                <span className="font-medium">Live Openings:</span> 
+                                                <span className="font-bold text-gray-900 dark:text-white">{industry_demand.live_job_count !== null ? `${industry_demand.live_job_count}+ currently active` : 'Data unavailable'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                                <Target className="w-4 h-4 text-emerald-500" />
+                                                <span className="font-medium">Avg Salary range:</span> 
+                                                <span className="font-bold text-gray-900 dark:text-white">{industry_demand.avg_salary_range}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                                <TrendingUp className="w-4 h-4 text-violet-500" />
+                                                <span className="font-medium">Growth Projection:</span> 
+                                                <span className="font-bold text-gray-900 dark:text-white capitalize">{industry_demand.growth_projection?.replace('_', ' ')}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        {industry_demand.top_skills_in_demand && industry_demand.top_skills_in_demand.length > 0 && (
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                                                    <Tag className="w-4 h-4 text-amber-500" />
+                                                    Trending Skills from Live Jobs
+                                                </p>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {industry_demand.top_skills_in_demand.map((skill, i) => (
+                                                        <span key={i} className="px-2 py-1 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-md text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                                            {skill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {industry_demand.data_source && (
+                                        <div className="mt-4 pt-4 border-t border-blue-200/50 dark:border-zinc-700/50 text-right">
+                                            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Data Source: {industry_demand.data_source}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Alternative Careers */}
                             {alternatives.length > 0 && (

@@ -105,7 +105,7 @@ async def generate_career_roadmap(
 
 
 @router.get("/insights")
-def get_career_insights(user_id: str = Depends(verify_firebase_token)):
+async def get_career_insights(user_id: str = Depends(verify_firebase_token)):
     try:
         roadmap = get_active_roadmap(user_id)
         if not roadmap:
@@ -113,7 +113,7 @@ def get_career_insights(user_id: str = Depends(verify_firebase_token)):
 
         career_decision = roadmap.get("career_decision", {})
         profile = roadmap.get("profile", {})
-        insights = generate_career_insights(profile, career_decision)
+        insights = await generate_career_insights(profile, career_decision)
 
         return {
             "status": "success",

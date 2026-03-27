@@ -36,6 +36,22 @@ Follow this exact reasoning pipeline:
    - 4-6 phases with clear progression
    - Include specific resources and milestones
 
+## CRITICAL: Resource URL Requirements
+You MUST include REAL, WORKING URLs from these free learning platforms:
+- **YouTube**: Use real channel/playlist URLs (e.g., https://www.youtube.com/watch?v=...)
+- **freeCodeCamp**: https://www.freecodecamp.org/learn/...
+- **MDN Web Docs**: https://developer.mozilla.org/...
+- **Coursera**: https://www.coursera.org/learn/...
+- **Khan Academy**: https://www.khanacademy.org/...
+- **W3Schools**: https://www.w3schools.com/...
+- **Official Documentation**: Link to official docs of the technology
+
+Each milestone MUST have 2-3 resources with real URLs. Do NOT use placeholder URLs.
+Example resources:
+- {"type": "video", "title": "Python Full Course for Beginners", "url": "https://www.youtube.com/watch?v=rfscVS0vtbw", "duration": "4 hours"}
+- {"type": "course", "title": "Responsive Web Design", "url": "https://www.freecodecamp.org/learn/2022/responsive-web-design/", "duration": "300 hours"}
+- {"type": "documentation", "title": "React Official Tutorial", "url": "https://react.dev/learn", "duration": "2 hours"}
+
 ## Input Profile Fields
 - name, education, skills, interests, goals, experience
 - time_per_week (hours available for learning, may be null)
@@ -88,7 +104,7 @@ Return ONLY valid JSON in this exact format (NO MARKDOWN, NO CODE BLOCKS):
               {
                 "type": "<course|documentation|project|video>",
                 "title": "<resource title>",
-                "url": "<url or description>",
+                "url": "<REAL working URL from YouTube/freeCodeCamp/Coursera/MDN>",
                 "duration": "<time estimate>"
               }
             ]

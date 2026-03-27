@@ -4,6 +4,8 @@ from app.config import PROJECT_NAME, ENV
 from app.routes.career import router as career_router
 from app.routes.students import router as students_router
 from app.routes.progress import router as progress_router
+from app.routes.quiz import router as quiz_router
+from app.routes.jobs import router as jobs_router
 
 app = FastAPI(
     title=PROJECT_NAME,
@@ -31,6 +33,8 @@ app.add_middleware(
 app.include_router(career_router)
 app.include_router(students_router)
 app.include_router(progress_router)
+app.include_router(quiz_router)
+app.include_router(jobs_router)
 
 @app.get("/")
 def root():

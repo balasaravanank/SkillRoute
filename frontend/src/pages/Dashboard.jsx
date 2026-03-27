@@ -9,7 +9,11 @@ import TimelineView from '../components/TimelineView'
 import ProgressTracker from '../components/ProgressTracker'
 import { FloatingHeader } from '../components/ui/floating-header'
 import ConfirmModal from '../components/ConfirmModal'
-import { RefreshCw, RotateCcw } from 'lucide-react'
+import { RefreshCw, RotateCcw, Brain } from 'lucide-react'
+import AILoadingOverlay from '../components/AILoadingOverlay'
+import SkillQuiz from '../components/SkillQuiz'
+import LearningOutcomes from '../components/LearningOutcomes'
+import JobListings from '../components/JobListings'
 import { useDashboardData } from '../hooks/useDashboardData.jsx'
 import { Skeleton } from '../components/ui/skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -19,6 +23,8 @@ const Dashboard = () => {
     profile,
     roadmap,
     loading,
+    isGenerating,
+    generationMode,
     generateRoadmap,
     adaptRoadmap,
     resetCareerPath,
@@ -28,6 +34,7 @@ const Dashboard = () => {
   const [showTimeline, setShowTimeline] = useState(true)
   const [showConfirmReset, setShowConfirmReset] = useState(false)
   const [showConfirmAdapt, setShowConfirmAdapt] = useState(false)
+  const [showQuiz, setShowQuiz] = useState(false)
   const navigate = useNavigate()
 
   // Listen for the custom event from the hook to trigger adapt modal
@@ -58,6 +65,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 transition-colors duration-300">
+      <AILoadingOverlay isVisible={isGenerating} mode={generationMode} />
       <FloatingHeader onLogout={handleLogout} userName={profile?.name} />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -81,6 +89,15 @@ const Dashboard = () => {
                   progress={roadmap.progress}
                   roadmap={roadmap.learning_roadmap}
                 />
+                <div className="mt-4 flex justify-center">
+                  <button
+                    onClick={() => setShowQuiz(true)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-sm transition-all"
+                  >
+                    <Brain className="w-4 h-4" />
+                    Take Skill Assessment
+                  </button>
+                </div>
               </div>
             )}
 
@@ -181,6 +198,18 @@ const Dashboard = () => {
                   />
                 )}
 
+                {roadmap.career_decision && roadmap.progress && (
+                  <LearningOutcomes
+                    careerDecision={roadmap.career_decision}
+                    progress={roadmap.progress}
+                    roadmap={roadmap.learning_roadmap}
+                  />
+                )}
+
+                {roadmap.career_decision?.career && (
+                  <JobListings career={roadmap.career_decision.career} />
+                )}
+
                 <div>
                   <AnimatePresence mode='wait'>
                     {showTimeline && roadmap?.learning_roadmap ? (
@@ -239,6 +268,12 @@ const Dashboard = () => {
         message="This will analyze your current progress and performance to generate a more personalized learning path for you. Do you want to proceed?"
         confirmText="Yes, Adapt Path"
         cancelText="Cancel"
+      />
+
+      <SkillQuiz
+        isOpen={showQuiz}
+        onClose={() => setShowQuiz(false)}
+        skills={profile?.skills || []}
       />
     </div>
   )
