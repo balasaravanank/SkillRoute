@@ -61,7 +61,7 @@ async def generate_quiz(skills: list) -> dict:
     while retry_count < max_retries:
         try:
             response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 messages=[
                     {"role": "system", "content": QUIZ_GENERATE_PROMPT},
                     {"role": "user", "content": json.dumps({"skills": skills})}
