@@ -257,7 +257,7 @@ async def generate_roadmap(profile: dict) -> dict:
         try:
             client = _get_client()
             response = await client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": json.dumps(profile)}
@@ -376,7 +376,7 @@ async def adapt_roadmap(current_data: dict) -> dict:
         try:
             client = _get_client()
             response = await client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 messages=[
                     {"role": "system", "content": ADAPT_SYSTEM_PROMPT},
                     {"role": "user", "content": json.dumps(input_data)}
